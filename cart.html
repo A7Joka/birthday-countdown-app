@@ -70,40 +70,43 @@
     }
     render();
 
-    document.getElementById('checkout').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const items = Cart.get();
-      if(!items.length){ alert('السلة فارغة'); return; }
+document.getElementById('checkout').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const items = Cart.get();
+  if (!items.length) { alert('السلة فارغة'); return; }
 
-      const formData = new FormData(e.target);
-      const payload = {
-        name: formData.get('name'),
-        phone: formData.get('phone'),
-        address: formData.get('address') || '',
-        notes: formData.get('notes') || '',
-        items,
-        total: Cart.total(),
-        createdAt: new Date().toISOString()
-      };
+  const formData = new FormData(e.target);
+  const payload = {
+    name: formData.get('name'),
+    phone: formData.get('phone'),
+    address: formData.get('address') || '',
+    notes: formData.get('notes') || '',
+    items,
+    total: Cart.total(),
+    createdAt: new Date().toISOString()
+  };
 
-      statusEl.textContent = 'جارٍ إرسال الطلب...';
-      try {
-        if(!GAS_URL){
-          throw new Error('ضع رابط Google Apps Script في assets/config.js');
-        }
-        const res = await fetch(GAS_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        if(!res.ok) throw new Error('فشل الإرسال');
-        Cart.clear();
-        render();
-        statusEl.textContent = 'تم استلام الطلب ✅ سيتم التواصل معك قريبًا.';
-      } catch (err){
-        statusEl.textContent = 'تعذر إرسال الطلب: ' + err.message;
-      }
+  statusEl.textContent = 'جارٍ إرسال الطلب...';
+
+  try {
+    const res = await fetch(GAS_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...payload, origin: window.location.origin })
     });
+
+    if (!res.ok) throw new Error('فشل الإرسال');
+    const result = await res.json();
+
+    if (result.status !== 'success') throw new Error(result.message);
+
+    Cart.clear();
+    render();
+    statusEl.textContent = 'تم استلام الطلب ✅ سيتم التواصل معك قريبًا.';
+  } catch (err) {
+    statusEl.textContent = 'تعذر إرسال الطلب: ' + err.message;
+  }
+});
   </script>
 </body>
 </html>
