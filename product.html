@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>تفاصيل المنتج</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50 text-gray-900">
+  <header class="bg-white sticky top-0 shadow z-10">
+    <div class="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
+      <a href="./" class="font-extrabold text-xl">🛍️ متجري</a>
+      <nav class="flex items-center gap-4 text-sm">
+        <a href="./" class="hover:text-blue-600">المنتجات</a>
+        <a href="./cart.html" class="hover:text-blue-600">السلة</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="max-w-5xl mx-auto px-4 py-6">
+    <div id="view"></div>
+  </main>
+
+  <script type="module">
+    import { products } from "./assets/store.js";
+    import { Cart } from "./assets/cart.js";
+    import { formatCurrency } from "./assets/utils.js";
+
+    const params = new URLSearchParams(location.search);
+    const slug = params.get('slug');
+    const view = document.getElementById('view');
+    const product = products.find(p => p.slug === slug);
+
+    if(!product){
+      view.innerHTML = '<div class="p-6 bg-white rounded shadow">المنتج غير موجود</div>';
+    } else {
+      view.innerHTML = `
+        <div class="bg-white rounded-2xl shadow overflow-hidden">
+          <div class="grid md:grid-cols-2">
+            <img src="${product.image}" alt="${product.title}" class="w-full h-80 object-cover">
+            <div class="p-6">
+              <h1 class="text-2xl font-bold">${product.title}</h1>
+              <p class="mt-2 text-gray-600">${product.description}</p>
+              <div class="mt-4 text-2xl font-extrabold">
+                ${product.discount ? `<span class="text-red-600">${product.discount} ج</span> <span class="line-through text-gray-400 text-base">${product.price} ج</span>` : `${product.price} ج`}
+              </div>
+              <div class="mt-6 flex gap-3">
+                <button id="add" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">أضف للسلة</button>
+                <a href="./cart.html" class="px-4 py-2 border rounded hover:bg-gray-50">الذهاب للسلة</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      document.getElementById('add').addEventListener('click', ()=> {
+        Cart.add(product, 1);
+        alert('تمت إضافة المنتج إلى السلة ✅');
+      });
+    }
+  </script>
+</body>
+</html>
